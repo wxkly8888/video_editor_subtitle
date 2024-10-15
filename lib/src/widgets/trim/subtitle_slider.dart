@@ -78,6 +78,12 @@ class _SubtitleSliderState extends State<SubtitleSlider> {
     final width = (_sliderWidth * (end - start)) / duration;
     return width;
   }
+  double computeStartX(Subtitle subtitle){
+    final start = subtitle.start.inMilliseconds;
+    final duration = widget.controller.videoDuration.inMilliseconds;
+    final startX = (_sliderWidth * start) / duration;
+    return startX;
+  }
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (_, box) {
@@ -89,36 +95,34 @@ class _SubtitleSliderState extends State<SubtitleSlider> {
           final data = snapshot.data;
           if(data==null) return const SizedBox();
           return snapshot.hasData
-              ? ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: data.length,
-                  itemBuilder: (_, i){
-                    double width = computeWidth(data[i]);
-                    print("subtile width: $width");
-                      return Stack(
-                        children: [
-                          SizedBox(
-                            width: width,
-                            height: 100,
-                            child:Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child:
-                              Text(data[i].data,
-                                style: TextStyle(
-                                    background: Paint()..color = Colors.green,
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold
-                                ),),
-                            ),
-                          )
-
-                        ],
-                      );
-                    },
-                )
+              ? Stack(
+            children: data.map((subtitle) {
+              double width = computeWidth(subtitle);
+              double startX = computeStartX(subtitle);
+              return Positioned(
+                left: startX,
+                child: SizedBox(
+                  width: width,
+                  height: 100,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF974836),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      subtitle.data,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          )
               : const SizedBox();
         },
       );

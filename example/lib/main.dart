@@ -84,7 +84,7 @@ class VideoEditor extends StatefulWidget {
 class _VideoEditorState extends State<VideoEditor> {
   final _exportingProgress = ValueNotifier<double>(0.0);
   final _isExporting = ValueNotifier<bool>(false);
-  final double height = 160;
+  final double height = 100;
 
   late final VideoEditorController _controller = VideoEditorController.file(
     widget.file,
@@ -237,16 +237,16 @@ class _VideoEditorState extends State<VideoEditor> {
                                   ),
                                 ),
                                 Container(
-                                  height: 300,
+                                  height: 400,
                                   margin: const EdgeInsets.only(top: 10),
                                   child: Column(
                                     children: [
-                                      TabBar(
+                                      const TabBar(
                                         tabs: [
                                           Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
-                                              children: const [
+                                              children: [
                                                 Padding(
                                                     padding: EdgeInsets.all(5),
                                                     child: Icon(
@@ -256,7 +256,7 @@ class _VideoEditorState extends State<VideoEditor> {
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
-                                            children: const [
+                                            children: [
                                               Padding(
                                                   padding: EdgeInsets.all(5),
                                                   child:
@@ -313,7 +313,6 @@ class _VideoEditorState extends State<VideoEditor> {
       ),
     );
   }
-
   Widget _topNavBar() {
     return SafeArea(
       child: SizedBox(

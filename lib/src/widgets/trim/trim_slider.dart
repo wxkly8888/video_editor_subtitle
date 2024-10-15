@@ -21,7 +21,7 @@ class TrimSlider extends StatefulWidget {
     this.horizontalMargin = 0.0,
     this.child,
     this.hasHaptic = true,
-    this.maxViewportRatio = 2.5,
+    this.maxViewportRatio = 5,
     this.scrollController,
   });
 
@@ -561,10 +561,15 @@ class _TrimSliderState extends State<TrimSlider>
         contrainst.maxWidth - _horizontalMargin * 2,
         contrainst.maxHeight,
       );
+      print("trim slider:trimLayout: $trimLayout");
+      //get screen width
+      var screenWidth = MediaQuery.of(context).size.width;
+      print("trim slider:screenWidth: $screenWidth");
       _fullLayout = Size(
         trimLayout.width * (_isExtendTrim ? _viewportRatio : 1),
         contrainst.maxHeight,
       );
+      print("trim slider:fullLayout: $_fullLayout");
       if (_trimLayout != trimLayout) {
         _trimLayout = trimLayout;
         _createTrimRect();
