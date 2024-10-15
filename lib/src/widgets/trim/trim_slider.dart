@@ -88,13 +88,13 @@ class _TrimSliderState extends State<TrimSlider>
     widget.controller.videoDuration.inMilliseconds /
         widget.controller.maxDuration.inMilliseconds,
   );
-  late final _isExtendTrim = _viewportRatio > 1;
 
   // Touch detection
 
   // Edges touch margin come from it size, but minimum is [margin]
   late final _edgesTouchMargin =
       max(widget.controller.trimStyle.edgeWidth, _touchMargin);
+
   // Position line touch margin come from it size, but minimum is [margin]
   late final _positionTouchMargin =
       max(widget.controller.trimStyle.positionLineWidth, _touchMargin);
@@ -115,18 +115,20 @@ class _TrimSliderState extends State<TrimSlider>
   /// Save last [_scrollController] pixels position
   double _lastScrollPixels = 0;
 
+  double scale = 1.0;
+
   @override
   void initState() {
     super.initState();
     _scrollController = widget.scrollController ?? ScrollController();
     widget.controller.addListener(_updateTrim);
-    if (_isExtendTrim) _scrollController.addListener(attachTrimToScroll);
+  _scrollController.addListener(attachTrimToScroll);
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_updateTrim);
-    if (_isExtendTrim) _scrollController.removeListener(attachTrimToScroll);
+    _scrollController.removeListener(attachTrimToScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -162,7 +164,7 @@ class _TrimSliderState extends State<TrimSlider>
     if (widget.controller.minTrim != _getRectToTrim(_rect.left) ||
         widget.controller.maxTrim != _getRectToTrim(_rect.right)) {
       // if trim slider is extended, set rect based on viewport with left at minimum position
-      if (_isExtendTrim) {
+      // if (_isExtendTrim) {
         setState(() {
           _rect = Rect.fromLTWH(
               _horizontalMargin,
@@ -174,16 +176,16 @@ class _TrimSliderState extends State<TrimSlider>
         // then update scroll controller to align the thumbnails with the new trim
         _scrollController.jumpTo(
             _geTrimToRect(widget.controller.minTrim) - _horizontalMargin);
-      } else {
-        // if the trim slider is not extended, set rect based on layout width
-        setState(() {
-          _rect = Rect.fromLTRB(
-              _geTrimToRect(widget.controller.minTrim),
-              _rect.top,
-              _geTrimToRect(widget.controller.maxTrim),
-              _rect.height);
-        });
-      }
+      // } else {
+      //   // if the trim slider is not extended, set rect based on layout width
+      //   setState(() {
+      //     _rect = Rect.fromLTRB(
+      //         _geTrimToRect(widget.controller.minTrim),
+      //         _rect.top,
+      //         _geTrimToRect(widget.controller.maxTrim),
+      //         _rect.height);
+      //   });
+      // }
       _resetControllerPosition();
     }
   }
@@ -353,20 +355,20 @@ class _TrimSliderState extends State<TrimSlider>
         );
         break;
       case _TrimBoundaries.inside:
-        if (_isExtendTrim) {
+        // if (_isExtendTrim) {
           _scrollController.position.moveTo(
             _scrollController.offset - delta.dx,
             clamp: false,
           );
-        } else {
-          // avoid rect to be out of bounds
-          _changeTrimRect(
-            left: posLeft.dx.clamp(
-              _horizontalMargin,
-              _trimLayout.width + _horizontalMargin - _rect.width,
-            ),
-          );
-        }
+        // } else {
+        //   // avoid rect to be out of bounds
+        //   _changeTrimRect(
+        //     left: posLeft.dx.clamp(
+        //       _horizontalMargin,
+        //       _trimLayout.width + _horizontalMargin - _rect.width,
+        //     ),
+        //   );
+        // }
         break;
       case _TrimBoundaries.progress:
         final pos = details.localPosition.dx;
@@ -561,15 +563,14 @@ class _TrimSliderState extends State<TrimSlider>
         contrainst.maxWidth - _horizontalMargin * 2,
         contrainst.maxHeight,
       );
-      print("trim slider:trimLayout: $trimLayout");
+      // print("trim slider:trimLayout: $trimLayout");
       //get screen width
       var screenWidth = MediaQuery.of(context).size.width;
-      print("trim slider:screenWidth: $screenWidth");
+      // print("trim slider:screenWidth: $screenWidth");
       _fullLayout = Size(
-        trimLayout.width * (_isExtendTrim ? _viewportRatio : 1),
+        trimLayout.width *  _viewportRatio *scale,
         contrainst.maxHeight,
       );
-      print("trim slider:fullLayout: $_fullLayout");
       if (_trimLayout != trimLayout) {
         _trimLayout = trimLayout;
         _createTrimRect();
@@ -589,46 +590,57 @@ class _TrimSliderState extends State<TrimSlider>
                 }
                 return true;
               },
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: _horizontalMargin),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          widget.controller.trimStyle.borderRadius,
-                        ),
-                        child: SizedBox(
-                          height: widget.height,
-                          width: _fullLayout.width,
-                          child: SubtitleSlider(
-                            controller: widget.controller,
-                            height: widget.height,
+              child: GestureDetector(
+                  onScaleUpdate: (ScaleUpdateDetails details) {
+                    if (details.scale != 1.0) {
+                    setState(() {
+                        scale = details.scale;
+                        print("onScale update:${details.scale}");
+                    });
+                    }
+                  },
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: _horizontalMargin),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              widget.controller.trimStyle.borderRadius,
+                            ),
+                            child: SizedBox(
+                              height: widget.height,
+                              width: _fullLayout.width,
+                              child: SubtitleSlider(
+                                controller: widget.controller,
+                                height: widget.height,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          widget.controller.trimStyle.borderRadius,
-                        ),
-                        child: SizedBox(
-                          height: widget.height,
-                          width: _fullLayout.width,
-                          child: ThumbnailSlider(
-                            controller: widget.controller,
-                            height: widget.height,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              widget.controller.trimStyle.borderRadius,
+                            ),
+                            child: SizedBox(
+                              height: widget.height,
+                              width: _fullLayout.width,
+                              child: ThumbnailSlider(
+                                controller: widget.controller,
+                                height: widget.height,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (widget.child != null)
+                            SizedBox(
+                                width: _fullLayout.width, child: widget.child)
+                        ],
                       ),
-                      if (widget.child != null)
-                        SizedBox(width: _fullLayout.width, child: widget.child)
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  )),
             ),
             // GestureDetector(
             //   onHorizontalDragStart: _onHorizontalDragStart,
