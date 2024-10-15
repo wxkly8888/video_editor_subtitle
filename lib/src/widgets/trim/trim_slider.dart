@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_editor/src/controller.dart';
+import 'package:video_editor/src/widgets/trim/subtitle_slider.dart';
 import 'package:video_editor/src/widgets/trim/thumbnail_slider.dart';
 import 'package:video_editor/src/widgets/trim/trim_slider_painter.dart';
 
@@ -598,6 +599,19 @@ class _TrimSliderState extends State<TrimSlider>
                         child: SizedBox(
                           height: widget.height,
                           width: _fullLayout.width,
+                          child: SubtitleSlider(
+                            controller: widget.controller,
+                            height: widget.height,
+                          ),
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          widget.controller.trimStyle.borderRadius,
+                        ),
+                        child: SizedBox(
+                          height: widget.height,
+                          width: _fullLayout.width,
                           child: ThumbnailSlider(
                             controller: widget.controller,
                             height: widget.height,
@@ -611,32 +625,32 @@ class _TrimSliderState extends State<TrimSlider>
                 ),
               ),
             ),
-            GestureDetector(
-              onHorizontalDragStart: _onHorizontalDragStart,
-              onHorizontalDragUpdate: _onHorizontalDragUpdate,
-              onHorizontalDragEnd: _onHorizontalDragEnd,
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedBuilder(
-                animation: Listenable.merge([
-                  widget.controller,
-                  widget.controller.video,
-                ]),
-                builder: (_, __) {
-                  return RepaintBoundary(
-                    child: CustomPaint(
-                      size: Size.fromHeight(widget.height),
-                      painter: TrimSliderPainter(
-                        _rect,
-                        _getVideoPosition(),
-                        widget.controller.trimStyle,
-                        isTrimming: widget.controller.isTrimming,
-                        isTrimmed: widget.controller.isTrimmed,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            )
+            // GestureDetector(
+            //   onHorizontalDragStart: _onHorizontalDragStart,
+            //   onHorizontalDragUpdate: _onHorizontalDragUpdate,
+            //   onHorizontalDragEnd: _onHorizontalDragEnd,
+            //   behavior: HitTestBehavior.opaque,
+            //   child: AnimatedBuilder(
+            //     animation: Listenable.merge([
+            //       widget.controller,
+            //       widget.controller.video,
+            //     ]),
+            //     builder: (_, __) {
+            //       return RepaintBoundary(
+            //         child: CustomPaint(
+            //           size: Size.fromHeight(widget.height),
+            //           painter: TrimSliderPainter(
+            //             _rect,
+            //             _getVideoPosition(),
+            //             widget.controller.trimStyle,
+            //             isTrimming: widget.controller.isTrimming,
+            //             isTrimmed: widget.controller.isTrimmed,
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // )
           ]));
     });
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:video_editor_example/crop_page.dart';
 import 'package:video_editor_example/export_service.dart';
 import 'package:video_editor_example/widgets/export_result.dart';
@@ -83,7 +84,7 @@ class VideoEditor extends StatefulWidget {
 class _VideoEditorState extends State<VideoEditor> {
   final _exportingProgress = ValueNotifier<double>(0.0);
   final _isExporting = ValueNotifier<bool>(false);
-  final double height = 60;
+  final double height = 160;
 
   late final VideoEditorController _controller = VideoEditorController.file(
     widget.file,
@@ -92,7 +93,7 @@ class _VideoEditorState extends State<VideoEditor> {
   );
 
   @override
-  void initState() {
+  void initState()  {
     super.initState();
     _controller
         .initialize(aspectRatio: 9 / 16)
@@ -101,6 +102,8 @@ class _VideoEditorState extends State<VideoEditor> {
       // handle minumum duration bigger than video duration error
       Navigator.pop(context);
     }, test: (e) => e is VideoMinDurationError);
+
+    // print("srt data:$data");
   }
 
   @override
@@ -234,7 +237,7 @@ class _VideoEditorState extends State<VideoEditor> {
                                   ),
                                 ),
                                 Container(
-                                  height: 200,
+                                  height: 300,
                                   margin: const EdgeInsets.only(top: 10),
                                   child: Column(
                                     children: [
