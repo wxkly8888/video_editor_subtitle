@@ -115,6 +115,7 @@ class _TrimSliderState extends State<TrimSlider>
   double _lastScrollPixels = 0;
 
   double scale = 1.0;
+  double lastScale = 1.0;
 
   @override
   void initState() {
@@ -191,92 +192,93 @@ class _TrimSliderState extends State<TrimSlider>
   /// Scroll to update [_rect] and trim values on scroll
   /// Will fix [_rect] to the scroll view when it is bouncing
   void attachTrimToScroll() {
-    if (_scrollController.position.outOfRange == false) {
-      // the last scroll position is ommited (when outOfRange == false)
-      // because of that the last rect position after bouncing is inaccurate
-      // it causes that minTrim 0.0 and maxTrim 1.0 are never reach
-      // adding to the rect the difference between current scroll position and the last one fixes it
-      if (_scrollController.offset == 0.0) {
-        _changeTrimRect(
-          left: _rect.left - _lastScrollPixels.abs(),
-          updateTrim: false,
-        );
-      } else if (_scrollController.offset ==
-          _scrollController.position.maxScrollExtent) {
-        _changeTrimRect(
-          left:
-              _rect.left + (_lastScrollPixels.abs() - _scrollController.offset),
-          updateTrim: false,
-        );
+    if (_scrollController.position.isScrollingNotifier.value) {
+      if (_scrollController.position.outOfRange == false) {
+        // the last scroll position is omitted (when outOfRange == false)
+        // because of that the last rect position after bouncing is inaccurate
+        // it causes that minTrim 0.0 and maxTrim 1.0 are never reached
+        // adding to the rect the difference between current scroll position and the last one fixes it
+        if (_scrollController.offset == 0.0) {
+          _changeTrimRect(
+            left: _rect.left - _lastScrollPixels.abs(),
+            updateTrim: false,
+          );
+        } else if (_scrollController.offset ==
+            _scrollController.position.maxScrollExtent) {
+          _changeTrimRect(
+            left:
+            _rect.left + (_lastScrollPixels.abs() - _scrollController.offset),
+            updateTrim: false,
+          );
+        }
+        _updateControllerTrim();
+        _preSynchLeft = null;
+        _preSynchRight = null;
+        _lastScrollPixelsBeforeBounce = null;
+        _lastScrollPixels = _scrollController.offset;
+        return;
       }
-      _updateControllerTrim();
-      _preSynchLeft = null;
-      _preSynchRight = null;
-      _lastScrollPixelsBeforeBounce = null;
-      _lastScrollPixels = _scrollController.offset;
-      return;
-    }
 
-    // if is not bouncing save position
-    if (isNotScrollBouncingBack) {
-      // use last scroll position because isScrollingNotifier is updated after the max bounce position is set
-      _lastScrollPixelsBeforeBounce = _scrollController.offset;
-    } else {
-      // on the left side
-      if (_scrollController.position.extentBefore == 0.0 &&
-          _preSynchLeft == null) {
-        _preSynchLeft = max(
-          0,
-          _rect.left -
+      // if is not bouncing save position
+      if (isNotScrollBouncingBack) {
+        // use last scroll position because isScrollingNotifier is updated after the max bounce position is set
+        _lastScrollPixelsBeforeBounce = _scrollController.offset;
+      } else {
+        // on the left side
+        if (_scrollController.position.extentBefore == 0.0 &&
+            _preSynchLeft == null) {
+          _preSynchLeft = max(
+            0,
+            _rect.left -
+                _horizontalMargin -
+                (_lastScrollPixelsBeforeBounce ?? _scrollController.offset).abs(),
+          );
+          // on the right side
+        } else if (_scrollController.position.extentAfter == 0.0 &&
+            _preSynchRight == null) {
+          final scrollOffset = (_scrollController.position.maxScrollExtent -
+              (_lastScrollPixelsBeforeBounce ?? _scrollController.offset))
+              .abs();
+          _preSynchRight = max(
+            0,
+            _trimLayout.width - (_rect.right - _horizontalMargin) - scrollOffset,
+          );
+        }
+        _lastScrollPixelsBeforeBounce = null;
+      }
+
+      // distance of rect to right side
+      final rectRightOffset =
+          _trimLayout.width - (_rect.right - _horizontalMargin);
+
+      // if view is bouncing on the right side
+      if (_scrollController.position.extentAfter == 0.0 &&
+          (_preSynchRight != null || _bounceRightOffset > rectRightOffset)) {
+        _changeTrimRect(
+          left: _trimLayout.width -
+              _bounceRightOffset -
+              _rect.width +
               _horizontalMargin -
-              (_lastScrollPixelsBeforeBounce ?? _scrollController.offset).abs(),
+              (_preSynchRight ?? 0),
+          updateTrim: false,
         );
-        // on the right side
-      } else if (_scrollController.position.extentAfter == 0.0 &&
-          _preSynchRight == null) {
-        final scrollOffset = (_scrollController.position.maxScrollExtent -
-                (_lastScrollPixelsBeforeBounce ?? _scrollController.offset))
-            .abs();
-        _preSynchRight = max(
-          0,
-          _trimLayout.width - (_rect.right - _horizontalMargin) - scrollOffset,
+        // if view is bouncing on the left side
+      } else if (_scrollController.position.extentBefore == 0.0 &&
+          (_preSynchLeft != null ||
+              _scrollController.offset.abs() + _horizontalMargin > _rect.left)) {
+        _changeTrimRect(
+          left: -_scrollController.offset +
+              _horizontalMargin +
+              (_preSynchLeft ?? 0),
+          updateTrim: false,
         );
       }
-      _lastScrollPixelsBeforeBounce = null;
+
+      // update trim and video position
+      _updateControllerTrim();
+      _lastScrollPixels = _scrollController.offset;
     }
-
-    // distance of rect to right side
-    final rectRightOffset =
-        _trimLayout.width - (_rect.right - _horizontalMargin);
-
-    // if view is bouncing on the right side
-    if (_scrollController.position.extentAfter == 0.0 &&
-        (_preSynchRight != null || _bounceRightOffset > rectRightOffset)) {
-      _changeTrimRect(
-        left: _trimLayout.width -
-            _bounceRightOffset -
-            _rect.width +
-            _horizontalMargin -
-            (_preSynchRight ?? 0),
-        updateTrim: false,
-      );
-      // if view is bouncing on the left side
-    } else if (_scrollController.position.extentBefore == 0.0 &&
-        (_preSynchLeft != null ||
-            _scrollController.offset.abs() + _horizontalMargin > _rect.left)) {
-      _changeTrimRect(
-        left: -_scrollController.offset +
-            _horizontalMargin +
-            (_preSynchLeft ?? 0),
-        updateTrim: false,
-      );
-    }
-
-    // update trim and video position
-    _updateControllerTrim();
-    _lastScrollPixels = _scrollController.offset;
   }
-
   @override
   bool get wantKeepAlive => true;
 
@@ -485,11 +487,15 @@ class _TrimSliderState extends State<TrimSlider>
                 return true;
               },
               child: GestureDetector(
+                 onScaleEnd: (ScaleEndDetails details) {
+                    lastScale = scale;
+                    print("last scale update:$scale");
+                  },
                   onScaleUpdate: (ScaleUpdateDetails details) {
                     if (details.scale != 1.0) {
                       setState(() {
-                        scale *= details.scale;
-                        print("onScale update:${details.scale}");
+                        scale = lastScale * details.scale;
+                        print("onScale update:$scale");
                       });
                     }
                   },

@@ -26,16 +26,16 @@ class ImageViewer extends StatelessWidget {
           AspectRatio(
             aspectRatio: controller.video.value.aspectRatio,
             child:
-            // fadeIn
-            //     ? FadeInImage(
-            //         fadeInDuration: const Duration(milliseconds: 400),
-            //         image: MemoryImage(bytes),
-            //         placeholder: MemoryImage(kTransparentImage),
-            //       )
-            //     :
+            fadeIn
+                ? FadeInImage(
+                    fadeInDuration: const Duration(milliseconds: 400),
+                    image: MemoryImage(bytes),
+                    placeholder: MemoryImage(kTransparentImage),
+                  )
+                :
             Image.memory(
                     bytes,
-                    color: const Color.fromRGBO(255, 255, 255, 0.2),
+                    color: const Color.fromRGBO(255, 255, 255, 1),
                     colorBlendMode: BlendMode.modulate,
                   ),
           ),

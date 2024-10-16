@@ -130,11 +130,11 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
 
                       return Stack(
                         children: [
-                          // _buildSingleThumbnail(
-                          //   data[0],
-                          //   transform,
-                          //   isPlaceholder: true,
-                          // ),
+                          _buildSingleThumbnail(
+                            data[0],
+                            transform,
+                            isPlaceholder: true,
+                          ),
                           if (index < data.length)
                             _buildSingleThumbnail(
                               data[index],
@@ -183,7 +183,8 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
                 ),
               ),
             );
-          }),
+          }
+          ),
         ),
       ),
     );
