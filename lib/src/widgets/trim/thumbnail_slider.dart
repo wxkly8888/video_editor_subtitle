@@ -14,10 +14,12 @@ class ThumbnailSlider extends StatefulWidget {
     super.key,
     required this.controller,
     this.height = 60,
+    this.scale = 1,
   });
 
   /// The [height] param specifies the height of the generated thumbnails
   final double height;
+  final double scale;
 
   final VideoEditorController controller;
 
@@ -68,7 +70,7 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
     );
 
     // regenerate thumbnails if need more to fit the slider
-    _neededThumbnails = (_sliderWidth ~/ _maxLayout.width) + 1;
+    _neededThumbnails = (((_sliderWidth ~/ _maxLayout.width) + 1)*widget.scale).ceil();
     if (_neededThumbnails > _thumbnailsCount) {
       _thumbnailsCount = _neededThumbnails;
       setState(() => _stream = _generateThumbnails());
@@ -96,12 +98,19 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
     }
     return size;
   }
-
+ updateThumbnails(){
+   _neededThumbnails = (((_sliderWidth ~/ _maxLayout.width) + 1)*widget.scale).ceil();
+   if (_neededThumbnails > _thumbnailsCount) {
+     _thumbnailsCount = _neededThumbnails;
+      _stream = _generateThumbnails();
+   }
+ }
   @override
   Widget build(BuildContext context) {
+    updateThumbnails();
     return LayoutBuilder(builder: (_, box) {
       _sliderWidth = box.maxWidth;
-
+      print("sliderWidth: $_sliderWidth _neededThumbnails: $_neededThumbnails");
       return StreamBuilder<List<Uint8List>>(
         stream: _stream,
         builder: (_, snapshot) {
@@ -112,19 +121,20 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
                   padding: EdgeInsets.zero,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _neededThumbnails,
-                  itemBuilder: (_, i) => ValueListenableBuilder<TransformData>(
-                    valueListenable: _transform,
-                    builder: (_, transform, __) {
-                      final index =
+                  itemBuilder: (_, i) =>
+                      ValueListenableBuilder<TransformData>(
+                       valueListenable: _transform,
+                        builder: (_, transform, __) {
+                         final index =
                           getBestIndex(_neededThumbnails, data!.length, i);
 
                       return Stack(
                         children: [
-                          _buildSingleThumbnail(
-                            data[0],
-                            transform,
-                            isPlaceholder: true,
-                          ),
+                          // _buildSingleThumbnail(
+                          //   data[0],
+                          //   transform,
+                          //   isPlaceholder: true,
+                          // ),
                           if (index < data.length)
                             _buildSingleThumbnail(
                               data[index],
@@ -154,7 +164,7 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
         child: ImageViewer(
           controller: widget.controller,
           bytes: bytes,
-          fadeIn: !isPlaceholder,
+
           child: LayoutBuilder(builder: (_, constraints) {
             final size = constraints.biggest;
             if (!isPlaceholder && _layout != size) {

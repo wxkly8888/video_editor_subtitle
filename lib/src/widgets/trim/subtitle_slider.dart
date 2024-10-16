@@ -88,7 +88,6 @@ class _SubtitleSliderState extends State<SubtitleSlider> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (_, box) {
       _sliderWidth = box.maxWidth;
-     print("subtile sliderWidth: $_sliderWidth");
       return StreamBuilder<List<Subtitle>>(
         stream: _stream,
         builder: (_, snapshot) {
